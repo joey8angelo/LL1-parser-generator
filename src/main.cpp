@@ -17,6 +17,7 @@ int main() {
     FIRST["%"] = std::unordered_set<string>({"%"});
     makeFIRST(terminals, nonterminals, productions, FIRST);
 
+    cout << "FIRST set ";
     prettyPrint(FIRST);
 }
 
@@ -49,8 +50,6 @@ void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>
                             rhs.insert(*z);
                         }
                     }
-                    cout << p->first << endl;
-                    prettyPrint(rhs);
                 }
             }
             for (auto i = rhs.begin(); i != rhs.end(); i++){
