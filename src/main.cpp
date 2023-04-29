@@ -17,8 +17,14 @@ int main() {
     FIRST["%"] = std::unordered_set<string>({"%"});
     makeFIRST(terminals, nonterminals, productions, FIRST);
 
+    std::unordered_map<string, std::unordered_set<string>> FOLLOW;
+    makeFOLLOW(nonterminals, productions, FIRST, FOLLOW);
+
     cout << "FIRST set ";
     prettyPrint(FIRST);
+
+    cout << "FOLLOW set ";
+    prettyPrint(FOLLOW);
 }
 
 void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>& nonterminals, std::unordered_map<string, vector<vector<string>>>& productions, std::unordered_map<string, std::unordered_set<string>>& FIRST){
@@ -62,6 +68,44 @@ void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>
     }
 }
 
+void makeFOLLOW(std::unordered_set<string>& nonterminals, std::unordered_map<string, vector<vector<string>>>& productions, std::unordered_map<string, std::unordered_set<string>>& FIRST, std::unordered_map<string, std::unordered_set<string>>& FOLLOW) {
+    for (auto A = nonterminals.begin(); A != nonterminals.end(); A++){
+        FOLLOW[*A] = std::unordered_set<string>();
+        if (*A == "S")
+            FOLLOW[*A].insert("$");
+    }
+    int count = 0;
+    int prev = -1;
+
+    while (count != prev) {
+        prev = count;
+
+        for (auto p = productions.begin(); p != productions.end(); p++) {
+            auto trailer = FOLLOW[p->first];
+
+            for (int i = 0; i < p->second.size(); i++) {
+                for (int j = p->second[i].size()-1; j >= 0; j--) {
+                    string B = p->second[i][j];
+                    if (nonterminals.find(B) != nonterminals.end()){
+                        for (auto t = trailer.begin(); t != trailer.end(); t++){
+                            if (FOLLOW[B].find(*t) == FOLLOW[B].end())
+                                count++;
+                            FOLLOW[B].insert(*t);
+                        }
+                        for (auto b = FIRST[B].begin(); b != FIRST[B].end(); b++) { // trailer = trailer U (FIRST[B] - {%})
+                            if (*b != "%")
+                                trailer.insert(*b);
+                        }
+                    }
+                    else 
+                        trailer.insert(B);
+                }
+            }
+        }
+    }
+
+}
+
 template <typename T>
 void prettyPrint(std::unordered_set<T>& set) {
     cout << "{ ";
@@ -102,7 +146,8 @@ void prettyPrint(std::unordered_map<string, vector<vector<string>>>& map ) {
 
 void getGrammar(std::unordered_set<string>& terminals, std::unordered_set<string>& nonterminals, std::unordered_map<string, vector<vector<string>>>& productions) {
     cout << "Input grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)" << endl;
-    cout << "type \"end\" to exit input" << endl;
+    cout << "Start symbol must be S" << endl;
+    cout << "Type \"end\" to exit input, type \"file\" to enter though input.txt" << endl;
  
     string input = "";
     string lhs = "";
@@ -110,7 +155,20 @@ void getGrammar(std::unordered_set<string>& terminals, std::unordered_set<string
     
     std::getline(cin, input);
 
-    while (input != "end") {
+    bool isfile = false;
+    if (input == "file")
+        isfile = true;
+
+    std::ifstream file;
+
+    file.open("input.txt");
+
+    if (!file.is_open())
+        return;
+
+    std::getline(file, input);
+
+    while (input != "end" && (!isfile || file)) {
         string curr = "";
         for (int i = 0; i < input.size(); i++) {
             if (input[i] != '>' && input[i] != ' ')
@@ -139,8 +197,13 @@ void getGrammar(std::unordered_set<string>& terminals, std::unordered_set<string
         lhs = "";
         curr = "";
 
-        std::getline(cin, input);
+        if (isfile)
+            std::getline(file, input);
+        else
+            std::getline(cin, input);
     }
+
+    file.close();
 }
 
 bool strlow(string& input){
