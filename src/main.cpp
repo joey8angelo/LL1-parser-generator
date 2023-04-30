@@ -1,8 +1,8 @@
 #include "headers.h"
 
 int main() {
-    std::unordered_set<string> terminals;
-    std::unordered_set<string> nonterminals;
+    unordered_set<string> terminals;
+    unordered_set<string> nonterminals;
     vector<vector<string>> productions;
     getGrammar(terminals, nonterminals, productions);
     
@@ -13,29 +13,35 @@ int main() {
     cout << "productions ";
     prettyPrint(productions);
 
-    std::unordered_map<string, std::unordered_set<string>> FIRST;
-    FIRST["%"] = std::unordered_set<string>({"%"});
+    unordered_map<string, unordered_set<string>> FIRST;
+    FIRST["%"] = unordered_set<string>({"%"});
     makeFIRST(terminals, nonterminals, productions, FIRST);
 
-    std::unordered_map<string, std::unordered_set<string>> FOLLOW;
+    unordered_map<string, unordered_set<string>> FOLLOW;
     makeFOLLOW(nonterminals, productions, FIRST, FOLLOW);
+
+    unordered_map<string, unordered_set<string>> FIRSTPLUS;
+    makeFIRSTPLUS(FIRST, FOLLOW, FIRSTPLUS);
 
     cout << "FIRST set ";
     prettyPrint(FIRST);
 
     cout << "FOLLOW set ";
     prettyPrint(FOLLOW);
+
+    cout << "FIRSTPLUS set ";
+    prettyPrint(FIRSTPLUS);
 }
 
-void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>& nonterminals, vector<vector<string>>& productions, std::unordered_map<string, std::unordered_set<string>>& FIRST){
+void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST){
 
     for (auto a = terminals.begin(); a != terminals.end(); a++){
         if(FIRST.find(*a) == FIRST.end()){
-            FIRST[*a] = std::unordered_set<string>({*a});
+            FIRST[*a] = unordered_set<string>({*a});
         }
     }
     for (auto A = nonterminals.begin(); A != nonterminals.end(); A++){
-        FIRST[*A] = std::unordered_set<string>();
+        FIRST[*A] = unordered_set<string>();
     }
 
     int count = 0;
@@ -46,7 +52,7 @@ void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>
 
         for (int i = 0; i < productions.size(); i++){
             bool cont = true;
-            std::unordered_set<string> rhs;
+            unordered_set<string> rhs;
             for (int j = 1; j < productions[i].size() && cont; j++){
                 string B = productions[i][j];
                 for (auto n = FIRST[B].begin(); n != FIRST[B].end(); n++){
@@ -66,9 +72,9 @@ void makeFIRST(std::unordered_set<string>& terminals, std::unordered_set<string>
     }
 }
 
-void makeFOLLOW(std::unordered_set<string>& nonterminals, vector<vector<string>>& productions, std::unordered_map<string, std::unordered_set<string>>& FIRST, std::unordered_map<string, std::unordered_set<string>>& FOLLOW) {
+void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW) {
     for (auto A = nonterminals.begin(); A != nonterminals.end(); A++){
-        FOLLOW[*A] = std::unordered_set<string>();
+        FOLLOW[*A] = unordered_set<string>();
         if (*A == "S")
             FOLLOW[*A].insert("$");
     }
@@ -104,10 +110,21 @@ void makeFOLLOW(std::unordered_set<string>& nonterminals, vector<vector<string>>
     }
 }
 
-void makeFIRSTPLUS() {}
+void makeFIRSTPLUS(unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW, unordered_map<string, unordered_set<string>>& FIRSTPLUS) {
+    for (auto i = FIRST.begin(); i != FIRST.end(); i++){
+        if (i->first == "%")
+            continue;
+        FIRSTPLUS[i->first] = i->second;
+        if (i->second.find("%") != i->second.end()){
+            FIRSTPLUS[i->first].erase("%");
+            for (auto j = FOLLOW[i->first].begin(); j != FOLLOW[i->first].end(); j++)
+                FIRSTPLUS[i->first].insert(*j);
+        }
+    }
+}
 
 template <typename T>
-void prettyPrint(std::unordered_set<T>& set) {
+void prettyPrint(unordered_set<T>& set) {
     cout << "{ ";
     for (auto i = set.begin(); i != set.end(); i++) {
         cout << *i << ", ";
@@ -115,7 +132,7 @@ void prettyPrint(std::unordered_set<T>& set) {
     cout << "}" << endl;
 }
 
-void prettyPrint(std::unordered_map<string, std::unordered_set<string>>& map){
+void prettyPrint(unordered_map<string, unordered_set<string>>& map){
     cout << "{ ";
 
     for (auto i = map.begin(); i != map.end(); i++){
@@ -140,7 +157,7 @@ void prettyPrint(vector<vector<string>>& ls ) {
 
 }; 
 
-void getGrammar(std::unordered_set<string>& terminals, std::unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
+void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
     cout << "Input grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)" << endl;
     cout << "Start symbol must be S" << endl;
     cout << "Type \"end\" to exit input, enter though input.txt" << endl;
