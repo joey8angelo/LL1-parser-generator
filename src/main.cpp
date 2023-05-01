@@ -17,20 +17,80 @@ int main() {
     FIRST["%"] = unordered_set<string>({"%"});
     makeFIRST(terminals, nonterminals, productions, FIRST);
 
-    unordered_map<string, unordered_set<string>> FOLLOW;
-    makeFOLLOW(nonterminals, productions, FIRST, FOLLOW);
-
-    unordered_map<string, unordered_set<string>> FIRSTPLUS;
-    makeFIRSTPLUS(FIRST, FOLLOW, FIRSTPLUS);
-
     cout << "FIRST set ";
     prettyPrint(FIRST);
+
+    unordered_map<string, unordered_set<string>> FOLLOW;
+    makeFOLLOW(nonterminals, productions, FIRST, FOLLOW);
 
     cout << "FOLLOW set ";
     prettyPrint(FOLLOW);
 
-    cout << "FIRSTPLUS set ";
-    prettyPrint(FIRSTPLUS);
+    vector<vector<string>> table;
+    makeTable(FIRST, FOLLOW, productions, terminals, nonterminals, table);
+
+    cout << "Table ";
+    prettyPrint(table);
+
+}
+
+void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW, vector<vector<string>>& productions, unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& table){
+    terminals.erase("%");
+    terminals.insert("$");
+    unordered_map<string, int> idTerm;
+    unordered_map<string, int> idNonTerm;
+
+    int id = 0;
+    for (auto i = terminals.begin(); i != terminals.end(); i++)
+        idTerm[*i] = id++;
+
+
+    id = 0;
+    for (auto i = nonterminals.begin(); i != nonterminals.end(); i++)
+        idNonTerm[*i] = id++;
+
+    prettyPrint(idTerm);
+    prettyPrint(idNonTerm);
+
+    for (int i = 0; i < nonterminals.size(); i++){
+        table.push_back({});
+        for (int j = 0; j < terminals.size(); j++){
+            table[table.size()-1].push_back("-");
+        }
+    }
+
+    string rule;
+    for (int i = 0; i < productions.size(); i++){
+        bool cont = true;
+        rule = productions[i][0] + " >";
+        unordered_set<string> curr;
+        for (int j = 1; j < productions[i].size(); j++){
+            string B = productions[i][j];
+            rule += " " + B;
+            for (auto z = FIRST[B].begin(); z != FIRST[B].end() && cont; z++){
+                if (*z != "%" || j == productions[i].size()-1)
+                    curr.insert(*z);
+            }
+            if (FIRST[B].find("%") == FIRST[B].end())
+                cont = false;
+        }
+
+        if (curr.find("%") != curr.end()){
+            curr.erase("%");
+            for (auto f = FOLLOW[productions[i][0]].begin(); f != FOLLOW[productions[i][0]].end(); f++){
+                curr.insert(*f);
+            }
+        }
+
+        string A = productions[i][0];
+        for (auto a = curr.begin(); a != curr.end(); a++){
+            if (table[idNonTerm[A]][idTerm[*a]] != "-"){
+                cout << "ERROR, CONFLICTS ON RULE " << rule;
+                return;
+            }
+            table[idNonTerm[A]][idTerm[*a]] = rule;
+        }
+    }
 }
 
 void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST){
@@ -110,30 +170,26 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
     }
 }
 
-void makeFIRSTPLUS(unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW, unordered_map<string, unordered_set<string>>& FIRSTPLUS) {
-    for (auto i = FIRST.begin(); i != FIRST.end(); i++){
-        if (i->first == "%")
-            continue;
-        FIRSTPLUS[i->first] = i->second;
-        if (i->second.find("%") != i->second.end()){
-            FIRSTPLUS[i->first].erase("%");
-            for (auto j = FOLLOW[i->first].begin(); j != FOLLOW[i->first].end(); j++)
-                FIRSTPLUS[i->first].insert(*j);
-        }
+void prettyPrint(unordered_set<string>& set) {
+    cout << "{";
+    cout << *set.begin();
+    for (auto i = ++set.begin(); i != set.end(); i++) {
+        cout << ", " << *i;
     }
+    cout << "}" << endl;
 }
 
-template <typename T>
-void prettyPrint(unordered_set<T>& set) {
-    cout << "{ ";
-    for (auto i = set.begin(); i != set.end(); i++) {
-        cout << *i << ", ";
+void prettyPrint(unordered_map<string, int>& map){
+    cout << "{";
+    cout << map.begin()->first << " : " << map.begin()->second;
+    for (auto i = ++map.begin(); i != map.end(); i++){
+        cout << ", " << i->first << " : " << i->second;
     }
     cout << "}" << endl;
 }
 
 void prettyPrint(unordered_map<string, unordered_set<string>>& map){
-    cout << "{ ";
+    cout << "{";
 
     for (auto i = map.begin(); i != map.end(); i++){
         cout << i->first << ": ";
@@ -143,14 +199,23 @@ void prettyPrint(unordered_map<string, unordered_set<string>>& map){
 }
 
 void prettyPrint(vector<vector<string>>& ls ) {
-    cout << "[ ";
+    cout << "[";
+    cout << "[";
+    if (ls.size() && ls[0].size())
+        cout << ls[0][0];
+    for (int j = 1; j < ls[0].size(); j++) {
+        cout << "," << ls[0][j];
+    }
+    cout << "]";
 
-    for (int i = 0; i < ls.size(); i++){
-        cout << "[ ";
-        for (int j = 0; j < ls[i].size(); j++) {
-            cout << ls[i][j] << ", ";
+    for (int i = 1; i < ls.size(); i++){
+        cout << ",\n[";
+        if (ls[i].size())
+            cout << ls[i][0];
+        for (int j = 1; j < ls[i].size(); j++) {
+            cout << ", " << ls[i][j];
         }
-        cout << "], " << endl;
+        cout << "]";
     }
 
     cout << "]" << endl;
