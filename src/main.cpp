@@ -1,6 +1,6 @@
 #include "headers.h"
 
-int main() {
+int main() { 
     unordered_set<string> terminals;
     unordered_set<string> nonterminals;
     vector<vector<string>> productions;
@@ -26,19 +26,101 @@ int main() {
     cout << "FOLLOW set ";
     prettyPrint(FOLLOW);
 
+    unordered_map<string, int> idTerm;
+    unordered_map<string, int> idNonTerm;
+
     vector<vector<string>> table;
-    makeTable(FIRST, FOLLOW, productions, terminals, nonterminals, table);
+    makeTable(FIRST, FOLLOW, productions, terminals, nonterminals, table, idTerm, idNonTerm);
+    terminals.clear();
+    nonterminals.clear();
+    FIRST.clear();
+    FOLLOW.clear();
+    productions.clear();
 
     cout << "Table ";
     prettyPrint(table);
 
+    parse(table, idTerm, idNonTerm);
+
 }
 
-void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW, vector<vector<string>>& productions, unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& table){
+void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, unordered_map<string, int>& idNonTerm){
+    std::ifstream file;
+    file.open("input.txt");
+
+    if (!file.is_open())
+        return;
+
+    string input;
+
+    std::getline(file, input);
+
+    while (file) {
+        vector<string> in;
+        string curr = "";
+        for (int i = 0; i < input.size(); i++){
+            if (input[i] == ' '){
+                in.push_back(curr);
+                curr = "";
+            }
+            else
+                curr += input[i];
+        }
+        if (!curr.empty())
+            in.push_back(curr);
+        
+        std::reverse(in.begin(),in.end());
+
+        vector<string> stack = {"$", "S"};
+        while (!in.empty()) {
+            cout << "stack: [";
+            for (int i = 0; i < stack.size(); i++){
+                cout << " " << stack[i];
+            }
+            cout << "]";
+            cout << " input:";
+            for (int i = in.size()-1; i >= 0; i--){
+                cout << " " << in[i];
+            }
+            cout << endl;
+
+
+            if (stack[stack.size()-1] == in[in.size()-1]){
+                stack.pop_back();
+                in.pop_back();
+            }
+            else{
+                string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[in[in.size()-1]]];
+                if (t == "-"){
+                    cout << "SYNTAX ERROR" << endl;
+                    return;
+                }
+                stack.pop_back();
+                vector<string> temp;
+                string curr = "";
+                for (int i = 0; i < t.size(); i++){
+                    if (t[i] == ' '){
+                        if (curr != "%")
+                            temp.push_back(curr);
+                        curr = "";
+                    }
+                    else
+                        curr += t[i];
+                }
+                if (!curr.empty() && curr != "%")
+                    temp.push_back(curr);
+
+                for (int j = temp.size()-1; j >= 0; j--)
+                    stack.push_back(temp[j]);
+            }
+        }
+        std::getline(file, input);
+    }
+}
+
+void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_map<string, unordered_set<string>>& FOLLOW, vector<vector<string>>& productions, unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& table, unordered_map<string, int>& idTerm, unordered_map<string, int>& idNonTerm){
     terminals.erase("%");
     terminals.insert("$");
-    unordered_map<string, int> idTerm;
-    unordered_map<string, int> idNonTerm;
 
     int id = 0;
     for (auto i = terminals.begin(); i != terminals.end(); i++)
@@ -62,11 +144,14 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
     string rule;
     for (int i = 0; i < productions.size(); i++){
         bool cont = true;
-        rule = productions[i][0] + " >";
+        rule = "";
         unordered_set<string> curr;
         for (int j = 1; j < productions[i].size(); j++){
             string B = productions[i][j];
-            rule += " " + B;
+            if (j == 1)
+                rule = B;
+            else
+                rule += " " + B;
             for (auto z = FIRST[B].begin(); z != FIRST[B].end() && cont; z++){
                 if (*z != "%" || j == productions[i].size()-1)
                     curr.insert(*z);
@@ -223,9 +308,10 @@ void prettyPrint(vector<vector<string>>& ls ) {
 }; 
 
 void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
-    cout << "Input grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)" << endl;
-    cout << "Start symbol must be S" << endl;
-    cout << "Type \"end\" to exit input, enter though input.txt" << endl;
+    //Input Grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)
+        // terminals can be non alphabetic nonterminals must be upper case
+        // all terms must be seperated by a space S > terminal_ NONTERMINAL
+        // Start symbol must be S
  
     string input = "";
     string lhs = "";
@@ -233,14 +319,14 @@ void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterm
     
     std::ifstream file;
 
-    file.open("input.txt");
+    file.open("grammar.txt");
 
     if (!file.is_open())
         return;
 
     std::getline(file, input);
 
-    while (input != "end" && file) {
+    while (file) {
         string curr = "";
         for (int i = 0; i < input.size(); i++) {
             if (input[i] != '>' && input[i] != ' ')

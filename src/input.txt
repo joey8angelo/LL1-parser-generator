@@ -1,13 +1,1 @@
-S > EXPR
-EXPR > TERM EXPR'
-EXPR' > + TERM EXPR'
-EXPR' > - TERM EXPR'
-EXPR' > %
-TERM > FACTOR TERM'
-TERM' > * FACTOR TERM'
-TERM' > / FACTOR TERM'
-TERM' > %
-FACTOR > ( EXPR )
-FACTOR > num
-FACTOR > name
-end
+num + num * ( num / name )
