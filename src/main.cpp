@@ -6,25 +6,27 @@ int main() {
     vector<vector<string>> productions;
     getGrammar(terminals, nonterminals, productions);
     
-    cout << "terminals ";
+    cout << "terminals" << endl;
     prettyPrint(terminals);
-    cout << "nonterminals ";
+    cout << endl;
+    cout << "nonterminals" << endl;
     prettyPrint(nonterminals);
-    cout << "productions ";
-    prettyPrint(productions);
+    cout << endl;
 
     unordered_map<string, unordered_set<string>> FIRST;
     FIRST["%"] = unordered_set<string>({"%"});
     makeFIRST(terminals, nonterminals, productions, FIRST);
 
-    cout << "FIRST set ";
+    cout << "FIRST set" << endl;
     prettyPrint(FIRST);
+    cout << endl;
 
     unordered_map<string, unordered_set<string>> FOLLOW;
     makeFOLLOW(nonterminals, productions, FIRST, FOLLOW);
 
-    cout << "FOLLOW set ";
+    cout << "FOLLOW set" << endl;
     prettyPrint(FOLLOW);
+    cout << endl;
 
     unordered_map<string, int> idTerm;
     unordered_map<string, int> idNonTerm;
@@ -37,8 +39,9 @@ int main() {
     FOLLOW.clear();
     productions.clear();
 
-    cout << "Table ";
+    cout << "Table" << endl;
     prettyPrint(table);
+    cout << endl;
 
     parse(table, idTerm, idNonTerm);
 
@@ -73,16 +76,16 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
 
         vector<string> stack = {"$", "S"};
         while (!in.empty()) {
-            cout << "stack: [";
+            cout << "stack: ";
             for (int i = 0; i < stack.size(); i++){
                 cout << " " << stack[i];
             }
-            cout << "]";
-            cout << " input:";
+            cout << endl;
+            cout << " input: ";
             for (int i = in.size()-1; i >= 0; i--){
                 cout << " " << in[i];
             }
-            cout << endl;
+            cout << endl << endl;
 
 
             if (stack[stack.size()-1] == in[in.size()-1]){
@@ -265,22 +268,18 @@ void prettyPrint(unordered_set<string>& set) {
 }
 
 void prettyPrint(unordered_map<string, int>& map){
-    cout << "{";
     cout << map.begin()->first << " : " << map.begin()->second;
     for (auto i = ++map.begin(); i != map.end(); i++){
         cout << ", " << i->first << " : " << i->second;
     }
-    cout << "}" << endl;
+    cout << endl;
 }
 
 void prettyPrint(unordered_map<string, unordered_set<string>>& map){
-    cout << "{";
-
     for (auto i = map.begin(); i != map.end(); i++){
         cout << i->first << ": ";
         prettyPrint(i->second);
     }
-    cout << "}" << endl;
 }
 
 void prettyPrint(vector<vector<string>>& ls ) {
