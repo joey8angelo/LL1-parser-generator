@@ -170,8 +170,8 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
         string A = productions[i][0];
         for (auto a = curr.begin(); a != curr.end(); a++){
             if (table[idNonTerm[A]][idTerm[*a]] != "-"){
-                cout << "ERROR, CONFLICTS ON RULE " << rule;
-                return;
+                cout << "ERROR, CONFLICTS IN TABLE[" << A << "][" << *a << "]" << endl;
+                cout << "attempting to put rule \"" << productions[i][0] + " > " + rule << "\" when \"" << productions[i][0] + " > " + table[idNonTerm[A]][idTerm[*a]] << "\" already in table" << endl;
             }
             table[idNonTerm[A]][idTerm[*a]] = rule;
         }

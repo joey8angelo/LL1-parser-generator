@@ -1,1 +1,1 @@
-num + num * ( num / name )
+func ident ( arg , arg , arg ) { if ( exp ) { if ( exp ) { statement } else { statement } } }
