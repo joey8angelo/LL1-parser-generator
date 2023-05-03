@@ -46,7 +46,7 @@ int main() {
     parse(table, idTerm, idNonTerm);
 
 }
-// the problem is need to detect eof, >> will just keep spitting out the last thing in file
+
 void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, unordered_map<string, int>& idNonTerm){
     std::ifstream file;
     file.open("input.txt");
@@ -66,7 +66,6 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
                 stack.pop_back();
                 if (!(file >> input))
                     input = "$";
-
             }
             else{
                 string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[input]];
@@ -120,9 +119,6 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
         idTerm[*i] = id++;
         table[0].push_back(*i);
     }
-
-    prettyPrint(idTerm);
-    prettyPrint(idNonTerm);
 
     for (int i = 1; i < nonterminals.size()+1; i++){
         for (int j = 1; j < terminals.size()+1; j++){
