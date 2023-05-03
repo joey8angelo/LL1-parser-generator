@@ -107,22 +107,26 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
     terminals.erase("%");
     terminals.insert("$");
 
-    int id = 0;
-    for (auto i = terminals.begin(); i != terminals.end(); i++)
-        idTerm[*i] = id++;
-
-
-    id = 0;
-    for (auto i = nonterminals.begin(); i != nonterminals.end(); i++)
+    int id = 1;
+    table.push_back({"-"});
+    for (auto i = nonterminals.begin(); i != nonterminals.end(); i++) {
         idNonTerm[*i] = id++;
+        table.push_back({*i});
+    }
+
+
+    id = 1;
+    for (auto i = terminals.begin(); i != terminals.end(); i++){
+        idTerm[*i] = id++;
+        table[0].push_back(*i);
+    }
 
     prettyPrint(idTerm);
     prettyPrint(idNonTerm);
 
-    for (int i = 0; i < nonterminals.size(); i++){
-        table.push_back({});
-        for (int j = 0; j < terminals.size(); j++){
-            table[table.size()-1].push_back("-");
+    for (int i = 1; i < nonterminals.size()+1; i++){
+        for (int j = 1; j < terminals.size()+1; j++){
+            table[i].push_back("-");
         }
     }
 
