@@ -46,7 +46,7 @@ int main() {
     parse(table, idTerm, idNonTerm);
 
 }
-
+// the problem is need to detect eof, >> will just keep spitting out the last thing in file
 void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, unordered_map<string, int>& idNonTerm){
     std::ifstream file;
     file.open("input.txt");
@@ -56,46 +56,22 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
 
     string input;
 
-    std::getline(file, input);
+    file >> input;
 
     while (file) {
-        vector<string> in;
-        string curr = "";
-        for (int i = 0; i < input.size(); i++){
-            if (input[i] == ' '){
-                in.push_back(curr);
-                curr = "";
-            }
-            else
-                curr += input[i];
-        }
-        if (!curr.empty())
-            in.push_back(curr);
-        
-        std::reverse(in.begin(),in.end());
-
         vector<string> stack = {"$", "S"};
-        while (!in.empty()) {
-            cout << "stack: ";
-            for (int i = 0; i < stack.size(); i++){
-                cout << " " << stack[i];
-            }
-            cout << endl;
-            cout << " input: ";
-            for (int i = in.size()-1; i >= 0; i--){
-                cout << " " << in[i];
-            }
-            cout << endl << endl;
+        while (stack[stack.size()-1] != "$") {
 
-
-            if (stack[stack.size()-1] == in[in.size()-1]){
+            if (stack[stack.size()-1] == input){
                 stack.pop_back();
-                in.pop_back();
+                if (!(file >> input))
+                    input = "$";
+
             }
             else{
-                string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[in[in.size()-1]]];
+                string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[input]];
                 if (t == "-"){
-                    cout << "SYNTAX ERROR" << endl;
+                    cout << "SYNTAX ERROR on table[" << stack[stack.size()-1] << "][" << input << "]" << endl;
                     return;
                 }
                 stack.pop_back();
@@ -116,8 +92,14 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
                 for (int j = temp.size()-1; j >= 0; j--)
                     stack.push_back(temp[j]);
             }
+
+            cout << "stack: ";
+            for (int i = 0; i < stack.size(); i++){
+                cout << " " << stack[i];
+            }
+            cout << endl;
+            cout << " input: " << input << endl << endl;
         }
-        std::getline(file, input);
     }
 }
 
@@ -259,6 +241,8 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
 }
 
 void prettyPrint(unordered_set<string>& set) {
+    if (set.empty())
+        return;
     cout << "{";
     cout << *set.begin();
     for (auto i = ++set.begin(); i != set.end(); i++) {
@@ -268,6 +252,8 @@ void prettyPrint(unordered_set<string>& set) {
 }
 
 void prettyPrint(unordered_map<string, int>& map){
+    if (map.empty())
+        return;
     cout << map.begin()->first << " : " << map.begin()->second;
     for (auto i = ++map.begin(); i != map.end(); i++){
         cout << ", " << i->first << " : " << i->second;
@@ -276,6 +262,8 @@ void prettyPrint(unordered_map<string, int>& map){
 }
 
 void prettyPrint(unordered_map<string, unordered_set<string>>& map){
+    if (map.empty())
+        return;
     for (auto i = map.begin(); i != map.end(); i++){
         cout << i->first << ": ";
         prettyPrint(i->second);
@@ -283,6 +271,8 @@ void prettyPrint(unordered_map<string, unordered_set<string>>& map){
 }
 
 void prettyPrint(vector<vector<string>>& ls ) {
+    if (ls.empty())
+        return;
     cout << "[";
     cout << "[";
     if (ls.size() && ls[0].size())
@@ -328,10 +318,11 @@ void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterm
     while (file) {
         string curr = "";
         for (int i = 0; i < input.size(); i++) {
-            if (input[i] != '>' && input[i] != ' ')
+            if (input[i] != ' ')
                 curr += input[i];
             if ((input[i] == ' ' || i == input.size()-1) && curr != "") {
                 if (lhs == "") {
+                    i += 1;
                     lhs = curr;
                     nonterminals.insert(curr);
                     productions.push_back({lhs});
