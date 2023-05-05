@@ -61,7 +61,6 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
                 stack.pop_back();
                 if (!(file >> input))
                     input = "$";
-
             }
             else{
                 string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[input]];
