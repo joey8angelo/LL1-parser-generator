@@ -11,6 +11,7 @@ void prettyPrint(unordered_set<string>&);
 void prettyPrint(vector<vector<string>>&);
 void prettyPrint(unordered_map<string, unordered_set<string>>&);
 void prettyPrint(unordered_map<string, int>&);
+void prettyPrint(vector<vector<string>>&, vector<int>&);
 void getGrammar(unordered_set<string>&, unordered_set<string>&, vector<vector<string>>&);
 void makeFIRST(unordered_set<string>&, unordered_set<string>&, vector<vector<string>>&, unordered_map<string, unordered_set<string>>&);
 void makeFOLLOW(unordered_set<string>&, vector<vector<string>>&, unordered_map<string, unordered_set<string>>&, unordered_map<string, unordered_set<string>>&);
