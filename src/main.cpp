@@ -39,14 +39,9 @@ int main() {
     FOLLOW.clear();
     productions.clear();
 
-    cout << "Table" << endl;
-    prettyPrint(table);
-    cout << endl;
-
     parse(table, idTerm, idNonTerm);
-
 }
-// the problem is need to detect eof, >> will just keep spitting out the last thing in file
+
 void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, unordered_map<string, int>& idNonTerm){
     std::ifstream file;
     file.open("input.txt");
@@ -108,21 +103,21 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
     terminals.insert("$");
 
     int id = 1;
+    int largestNonTerm = 1; // only for printing table nice any line marked with * is as well
     table.push_back({"-"});
     for (auto i = nonterminals.begin(); i != nonterminals.end(); i++) {
         idNonTerm[*i] = id++;
         table.push_back({*i});
+        largestNonTerm = std::max(largestNonTerm, int((*i).size())); // *
     }
 
-
+    vector<int> largest = {largestNonTerm}; // *
     id = 1;
     for (auto i = terminals.begin(); i != terminals.end(); i++){
         idTerm[*i] = id++;
         table[0].push_back(*i);
+        largest.push_back((*i).size()); // *
     }
-
-    prettyPrint(idTerm);
-    prettyPrint(idNonTerm);
 
     for (int i = 1; i < nonterminals.size()+1; i++){
         for (int j = 1; j < terminals.size()+1; j++){
@@ -163,8 +158,10 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
                 cout << "attempting to put rule \"" << productions[i][0] + " > " + rule << "\" when \"" << productions[i][0] + " > " + table[idNonTerm[A]][idTerm[*a]] << "\" already in table" << endl;
             }
             table[idNonTerm[A]][idTerm[*a]] = rule;
+            largest[idTerm[*a]] = std::max(largest[idTerm[*a]], int(rule.size())); // *
         }
     }
+    prettyPrint(table, largest); // *
 }
 
 void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST){
@@ -274,31 +271,34 @@ void prettyPrint(unordered_map<string, unordered_set<string>>& map){
     }
 }
 
-void prettyPrint(vector<vector<string>>& ls ) {
-    if (ls.empty())
-        return;
+void prettyPrint(vector<vector<string>>& table, vector<int>& largest){
     cout << "[";
-    cout << "[";
-    if (ls.size() && ls[0].size())
-        cout << ls[0][0];
-    for (int j = 1; j < ls[0].size(); j++) {
-        cout << "," << ls[0][j];
-    }
-    cout << "]";
-
-    for (int i = 1; i < ls.size(); i++){
-        cout << ",\n[";
-        if (ls[i].size())
-            cout << ls[i][0];
-        for (int j = 1; j < ls[i].size(); j++) {
-            cout << ", " << ls[i][j];
+    for (int i = 0; i < table.size(); i++){
+        if (i != 0)
+            cout << " ";
+        cout << "[";
+        for (int j = 0; j < table[i].size(); j++){
+            string preSpaces = "";
+            string postSpaces = "";
+            int num = largest[j]-table[i][j].size();
+            int pre = num / 2;
+            int post = num - pre;
+            while (pre--)
+                preSpaces += " ";
+            while (post--)
+                postSpaces += " ";
+            if (j == table[i].size()-1)
+                cout << preSpaces << table[i][j] << postSpaces;
+            else
+                cout << preSpaces << table[i][j] << postSpaces << ",";
         }
-        cout << "]";
+        if (i == table.size()-1)
+            cout << "]";
+        else
+            cout << "]," << endl;
     }
-
-    cout << "]" << endl;
-
-}; 
+    cout << "]" << endl << endl;
+} 
 
 void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
     //Input Grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)
