@@ -1,13 +1,16 @@
 # LL1 parser
-Input an LL(1) grammar into grammar.txt. The grammmar must include S as the start symbol, nonterminals must be uppercase only and can include non alphabetic characters. Terminals are lowercase only and can also include special characters. Each token must be seperated by a space. Epsilon is denoted with %, rules are in form NONTERMINAL > terminals\NONTERMINALS. NONTERMINAL > > is allowed. 
+Input an LL(1) grammar into grammar.txt. The grammmar must include S as the start symbol, and each token must be seperated by a space. Epsilon is denoted with %, and $ is reserved for eof.
+The > symbol does not need to be used any single character after the first token is ignored, meaning S > >, S . token, S  token are all valid, notice the double spaces in the last rule.
 ```
 S > E
 E > T E'
 E' > + T E'
 E' > - T E'
+E' > %
 T > F T'
 T' > * F T'
 T' > / F T'
+T' > %
 F > ( E )
 F > num
 ```

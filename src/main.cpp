@@ -207,7 +207,7 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
         if (*A == "S")
             FOLLOW[*A].insert("$");
     }
-    bool followChanged = true
+    bool followChanged = true;
 
     while (followChanged) {
         followChanged = false;
