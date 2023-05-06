@@ -164,7 +164,6 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
 }
 
 void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST){
-
     for (auto a = terminals.begin(); a != terminals.end(); a++){
         if(FIRST.find(*a) == FIRST.end()){
             FIRST[*a] = unordered_set<string>({*a});
@@ -174,11 +173,10 @@ void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nontermi
         FIRST[*A] = unordered_set<string>();
     }
 
-    int count = 0;
-    int prev = -1;
+    bool firstChanged = true;
 
-    while (count != prev) {
-        prev = count;
+    while (firstChanged) {
+        firstChanged = false;
 
         for (int i = 0; i < productions.size(); i++){
             bool cont = true;
@@ -194,7 +192,7 @@ void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nontermi
             }
             for (auto r = rhs.begin(); r != rhs.end(); r++){
                 if (FIRST[productions[i][0]].find(*r) == FIRST[productions[i][0]].end())
-                    count++;
+                    firstChanged = true;
                 FIRST[productions[i][0]].insert(*r);
             }
             rhs.clear();
@@ -208,11 +206,10 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
         if (*A == "S")
             FOLLOW[*A].insert("$");
     }
-    int count = 0;
-    int prev = -1;
+    bool followChanged = true;
 
-    while (count != prev) {
-        prev = count;
+    while (followChanged) {
+        followChanged = false;
 
         for (int i = 0; i < productions.size(); i++) {
             auto trailer = FOLLOW[productions[i][0]];
@@ -221,7 +218,7 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
                 if (nonterminals.find(B) != nonterminals.end()){
                     for (auto t = trailer.begin(); t != trailer.end(); t++){ // FOLLOW(B) = FOLLOW(B) U trailer
                         if (FOLLOW[B].find(*t) == FOLLOW[B].end())
-                            count++;
+                            followChanged = true;
                         FOLLOW[B].insert(*t);
                     }
                     if (FIRST[B].find("%") != FIRST[B].end()){ // if epsilon is in FIRST[B]
@@ -238,6 +235,58 @@ void makeFOLLOW(unordered_set<string>& nonterminals, vector<vector<string>>& pro
             }
         }
     }
+}
+
+void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
+
+    string input = "";
+    string lhs = "";
+    string rhs = "";
+    
+    std::ifstream file;
+
+    file.open("grammar.txt");
+
+    if (!file.is_open())
+        return;
+
+    std::getline(file, input);
+
+    while (file){
+        string curr = "";
+
+        // parse each space seperated token and add lhs to nonterminals and productions
+        for ( int i = 0; i < input.size(); i++){
+            if (input[i] != ' ')
+                curr += input[i];
+            if((input[i] == ' ' || i == input.size()-1) && curr != ""){
+                if (lhs == "") {
+                    i += 1;
+                    lhs = curr;
+                    nonterminals.insert(curr);
+                    productions.push_back({lhs});
+                }
+                else
+                    productions[productions.size()-1].push_back(curr);
+
+                curr = "";
+            }
+        }
+        lhs = "";
+        curr = "";
+
+        std::getline(file, input);
+    }
+
+    // find terminals by iterating over each production rule and adding tokens not in nonterminals
+    for (int i = 0; i < productions.size(); i++){
+        for (int j = 0; j < productions[i].size(); j++){
+            if (nonterminals.find(productions[i][j]) == nonterminals.end())
+                terminals.insert(productions[i][j]);
+        }
+    }
+
+    file.close();
 }
 
 void prettyPrint(unordered_set<string>& set) {
@@ -298,66 +347,3 @@ void prettyPrint(vector<vector<string>>& table, vector<int>& largest){
     }
     cout << "]" << endl << endl;
 } 
-
-void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions) {
-    //Input Grammar in form NONTERMINAL > (terminal |NONTERMINAL )* (space/case sensitive)
-        // terminals can be non alphabetic nonterminals must be upper case
-        // all terms must be seperated by a space S > terminal_ NONTERMINAL
-        // Start symbol must be S
- 
-    string input = "";
-    string lhs = "";
-    string rhs = "";
-    
-    std::ifstream file;
-
-    file.open("grammar.txt");
-
-    if (!file.is_open())
-        return;
-
-    std::getline(file, input);
-
-    while (file) {
-        string curr = "";
-        for (int i = 0; i < input.size(); i++) {
-            if (input[i] != ' ')
-                curr += input[i];
-            if ((input[i] == ' ' || i == input.size()-1) && curr != "") {
-                if (lhs == "") {
-                    i += 1;
-                    lhs = curr;
-                    nonterminals.insert(curr);
-                    productions.push_back({lhs});
-                }
-                else if (strlow(curr)) {
-                    terminals.insert(curr);
-                    productions[productions.size()-1].push_back(curr);
-                }
-                else {
-                    nonterminals.insert(curr);
-                    productions[productions.size()-1].push_back(curr);
-                }
-
-                curr = "";
-            }
-        }
-        lhs = "";
-        curr = "";
-
-        std::getline(file, input);
-    }
-
-    file.close();
-}
-
-bool strlow(string& input){
-    for (int i = 0; i < input.size(); i++) {
-        if (!isalpha(input[i]))
-            continue;
-        if (!islower(input[i])){
-            return false;
-        }
-    }
-    return true;
-}
