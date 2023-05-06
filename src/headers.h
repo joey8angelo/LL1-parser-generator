@@ -16,5 +16,4 @@ void getGrammar(unordered_set<string>&, unordered_set<string>&, vector<vector<st
 void makeFIRST(unordered_set<string>&, unordered_set<string>&, vector<vector<string>>&, unordered_map<string, unordered_set<string>>&);
 void makeFOLLOW(unordered_set<string>&, vector<vector<string>>&, unordered_map<string, unordered_set<string>>&, unordered_map<string, unordered_set<string>>&);
 void makeTable(unordered_map<string, unordered_set<string>>&, unordered_map<string, unordered_set<string>>&, vector<vector<string>>&, unordered_set<string>&, unordered_set<string>&, vector<vector<string>>&, unordered_map<string, int>&, unordered_map<string, int>&);
-bool strlow(string&);
 void parse(vector<vector<string>>&, unordered_map<string, int>&, unordered_map<string, int>&);
