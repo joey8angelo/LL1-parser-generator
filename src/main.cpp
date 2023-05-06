@@ -164,7 +164,6 @@ void makeTable(unordered_map<string, unordered_set<string>>& FIRST, unordered_ma
 }
 
 void makeFIRST(unordered_set<string>& terminals, unordered_set<string>& nonterminals, vector<vector<string>>& productions, unordered_map<string, unordered_set<string>>& FIRST){
-
     for (auto a = terminals.begin(); a != terminals.end(); a++){
         if(FIRST.find(*a) == FIRST.end()){
             FIRST[*a] = unordered_set<string>({*a});
@@ -260,7 +259,7 @@ void getGrammar(unordered_set<string>& terminals, unordered_set<string>& nonterm
         for ( int i = 0; i < input.size(); i++){
             if (input[i] != ' ')
                 curr += input[i];
-            if((input[i] == ' ') || i == input.size()-1 && curr != ""){
+            if((input[i] == ' ' || i == input.size()-1) && curr != ""){
                 if (lhs == "") {
                     i += 1;
                     lhs = curr;
