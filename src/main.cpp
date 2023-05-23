@@ -63,6 +63,10 @@ void parse(vector<vector<string>>& table, unordered_map<string, int>& idTerm, un
                     input = "$";
             }
             else{
+                if((idNonTerm.find(input) == idNonTerm.end()) && (idTerm.find(input) == idTerm.end())){
+                    cout << "Input '" << input << "' is not a token in the grammar" << endl;
+                    return;
+                }
                 string t = table[idNonTerm[stack[stack.size()-1]]][idTerm[input]];
                 if (t == "-"){
                     cout << "SYNTAX ERROR on table[" << stack[stack.size()-1] << "][" << input << "]" << endl;
