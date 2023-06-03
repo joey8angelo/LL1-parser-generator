@@ -1,6 +1,6 @@
 # LL1 parser
 Input an LL(1) grammar into grammar.txt. The grammmar must include S as the start symbol, and each token must be seperated by a space. Epsilon is denoted with %, and $ is reserved for eof.
-The > symbol does not need to be used any single character after the first token is ignored, meaning S > >, S . token, S  token are all valid, notice the double spaces in the last rule.
+The > symbol does not need to be used any single character after the first token is ignored, meaning S > > and S . token are valid.
 ```
 S > E
 E > T E'
